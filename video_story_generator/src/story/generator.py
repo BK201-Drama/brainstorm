@@ -1,37 +1,32 @@
 """
-故事生成模块
-使用现有的skills生成故事内容
+故事生成器
+职责：根据主题或提示词生成故事文本
 """
-import os
-import sys
-
-# 添加skills目录到路径
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'skills'))
+from ..config import STORY_CONFIG
 
 
 class StoryGenerator:
+    """故事文本生成器"""
+
     def __init__(self):
-        self.min_words = 800
-        self.max_words = 1500
-        
+        self.min_words = STORY_CONFIG["min_words"]
+        self.max_words = STORY_CONFIG["max_words"]
+
     def generate_story(self, topic=None, style="故事会"):
         """
-        生成故事文本
-        
+        生成故事文本。
+
         Args:
-            topic: 故事主题（可选）
+            topic: 故事主题（可选，默认"中年人的情感故事"）
             style: 故事风格
-        
+
         Returns:
-            故事文本
+            故事文本字符串
         """
-        # 如果没有指定主题，使用默认主题
         if topic is None:
             topic = "中年人的情感故事"
-        
-        # 这里可以调用现有的skill，或者使用简单的模板
-        # 由于skill是Claude的，我们先用模板生成，实际使用时可以调用API
-        
+
+        # 模板生成（后续可接入 Claude API 或其他 LLM）
         story_template = f"""
 {topic}
 
@@ -87,21 +82,18 @@ class StoryGenerator:
 
 生活不会一直平淡，只要我们愿意去寻找，愿意去感受，总会发现那些让我们心动的人和事。
 """
-        
         return story_template.strip()
-    
+
     def generate_story_from_prompt(self, prompt):
         """
-        根据提示词生成故事
-        
+        根据提示词生成故事。
+
         Args:
             prompt: 故事提示词
-        
+
         Returns:
-            故事文本
+            故事文本字符串
         """
-        # 这里可以集成Claude API或使用现有的skill
-        # 目前先用模板，实际使用时可以调用API
         story = f"""
 根据以下提示生成的故事：
 
