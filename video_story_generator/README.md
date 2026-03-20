@@ -63,13 +63,19 @@ python main.py --local-videos downloads/video1.mp4 --novel-name "中年往事" -
 python main.py --local-videos downloads/video1.mp4 --story-file stories/中年往事/chapter-001.txt
 ```
 
-### 方式6: B站分类自动下载
+### 方式6: 批量章节并发生成（新增）
+
+```bash
+python main.py --local-videos downloads/video1.mp4 --novel-name "中年往事" --chapters 001-010 --workers 3
+```
+
+### 方式7: B站分类自动下载
 
 ```bash
 python scripts/auto_download.py
 ```
 
-### 方式7: 通用视频下载
+### 方式8: 通用视频下载
 
 ```bash
 python scripts/download_videos.py <url1> <url2> ...
@@ -83,6 +89,10 @@ python scripts/download_videos.py <url1> <url2> ...
 - 字幕样式（字体大小、颜色、位置）
 - 目标视频时长
 - 下载并发数、时长限制、自动静音
+
+CLI 并发参数：
+- `--workers`：章节并发渲染数（默认 2）
+- `--chapters`：章节范围（如 `001-010`）
 
 ## 输出文件
 
