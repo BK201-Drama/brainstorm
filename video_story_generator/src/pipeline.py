@@ -8,7 +8,7 @@ import argparse
 from .config import OUTPUT_CONFIG, VIDEO_CONFIG
 from .downloader import VideoDownloader
 from .editor import VideoCompositor
-from .story import StoryGenerator
+from .story import StoryGenerator, save_chapter_text, load_story_text
 from .tts import text_to_audio_sync
 
 
@@ -16,14 +16,19 @@ def _ensure_dirs():
     """确保必要的输出 / 临时目录存在"""
     os.makedirs(OUTPUT_CONFIG["output_dir"], exist_ok=True)
     os.makedirs(OUTPUT_CONFIG["temp_dir"], exist_ok=True)
+    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    os.makedirs(os.path.join(project_root, "stories"), exist_ok=True)
 
 
 def main():
     parser = argparse.ArgumentParser(description='视频故事生成器')
     parser.add_argument('--urls', nargs='+', help='视频URL列表')
     parser.add_argument('--local-videos', nargs='+', help='本地视频文件路径列表')
-    parser.add_argument('--story-topic', type=str, help='故事主题')
-    parser.add_argument('--story-text', type=str, help='直接提供故事文本')
+    parser.add_argument('--story-topic', type=str, help='故事主题（会生成章节文本）')
+    parser.add_argument('--story-text', type=str, help='直接提供故事文本（会生成章节文本）')
+    parser.add_argument('--story-file', type=str, help='直接读取故事txt文件，例如 stories/xxx/chapter-001.txt')
+    parser.add_argument('--novel-name', type=str, help='小说名（用于章节存储和读取）')
+    parser.add_argument('--chapter', type=str, default='001', help='章节编号，如 001 / 1 / chapter-001')
     parser.add_argument('--output', type=str, default='output/final_video.mp4', help='输出视频文件路径')
 
     args = parser.parse_args()
@@ -69,18 +74,29 @@ def main():
         return
     print("[OK] 视频拼接完成")
 
-    # ── 步骤3: 生成故事 ──────────────────────────────────────
-    print("\n[步骤3] 生成故事...")
+    # ── 步骤3: 生成或读取故事 ─────────────────────────────────
+    print("\n[步骤3] 生成/读取故事...")
     story_gen = StoryGenerator()
 
-    story_text = args.story_text or story_gen.generate_story(topic=args.story_topic)
-    print(f"[OK] 故事生成完成（{len(story_text)} 字）")
-    print(f"\n故事预览:\n{story_text[:200]}...\n")
+    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-    story_file = os.path.join(OUTPUT_CONFIG["output_dir"], "story.txt")
-    with open(story_file, 'w', encoding='utf-8') as f:
-        f.write(story_text)
-    print(f"故事已保存到: {story_file}")
+    if args.story_file or (args.novel_name and args.chapter and not args.story_text and not args.story_topic):
+        story_text, story_file = load_story_text(
+            story_file=args.story_file,
+            project_root=project_root,
+            novel_name=args.novel_name,
+            chapter=args.chapter,
+        )
+        print(f"[OK] 已从文本读取故事（{len(story_text)} 字）")
+        print(f"故事来源: {story_file}")
+    else:
+        story_text = args.story_text or story_gen.generate_story(topic=args.story_topic)
+        novel_name = args.novel_name or (args.story_topic or "默认小说")
+        story_file = save_chapter_text(project_root, novel_name, args.chapter, story_text)
+        print(f"[OK] 故事生成完成（{len(story_text)} 字）")
+        print(f"故事已保存到: {story_file}")
+
+    print(f"\n故事预览:\n{story_text[:200]}...\n")
 
     # ── 步骤4: 生成配音和字幕时间轴 ──────────────────────────
     print("\n[步骤4] 生成配音和字幕...")
@@ -96,11 +112,19 @@ def main():
 
     # ── 步骤5: 合成最终视频 ──────────────────────────────────
     print("\n[步骤5] 合成最终视频（视频+配音+字幕）...")
+
+    output_path = args.output
+    if args.output == 'output/final_video.mp4' and args.novel_name:
+        chapter_norm = args.chapter.replace('chapter-', '').zfill(3)
+        novel_output_dir = os.path.join(OUTPUT_CONFIG["output_dir"], args.novel_name)
+        os.makedirs(novel_output_dir, exist_ok=True)
+        output_path = os.path.join(novel_output_dir, f"chapter-{chapter_norm}.mp4")
+
     final_video = compositor.create_final_video(
         concatenated_video,
         audio_path,
         subtitle_timeline,
-        args.output,
+        output_path,
     )
 
     if not final_video:

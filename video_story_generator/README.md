@@ -6,8 +6,8 @@
 
 1. **视频下载/获取**：从YouTube、B站等平台下载视频，或使用本地视频
 2. **视频拼接**：将多个视频拼接成总时长约10分钟的视频
-3. **故事生成**：自动生成故事文本
-4. **配音生成**：使用edge-tts将故事文本转换为中文语音
+3. **故事文本落盘**：按 `stories/<小说名>/chapter-001.txt` 规范保存
+4. **从章节 txt 生成视频**：可直接读取章节文本进行配音和字幕生成
 5. **字幕添加**：使用PIL渲染中文字幕，确保正确显示，并与配音精确同步
 
 ## 安装
@@ -43,25 +43,33 @@ python main.py --urls https://www.youtube.com/watch?v=xxx https://www.bilibili.c
 python main.py --local-videos downloads/video1.mp4 downloads/video2.mp4
 ```
 
-### 方式3: 指定故事主题
+### 方式3: 指定故事主题（会自动保存章节 txt）
 
 ```bash
-python main.py --local-videos downloads/video1.mp4 --story-topic "中年人的情感故事"
+python main.py --local-videos downloads/video1.mp4 --story-topic "中年人的情感故事" --novel-name "中年往事" --chapter 001
 ```
 
-### 方式4: 使用自定义故事文本
+### 方式4: 使用自定义故事文本（会自动保存章节 txt）
 
 ```bash
-python main.py --local-videos downloads/video1.mp4 --story-text "你的故事文本..."
+python main.py --local-videos downloads/video1.mp4 --story-text "你的故事文本..." --novel-name "中年往事" --chapter 002
 ```
 
-### 方式5: B站分类自动下载
+### 方式5: 读取章节 txt 生成视频（推荐）
+
+```bash
+python main.py --local-videos downloads/video1.mp4 --novel-name "中年往事" --chapter 001
+# 或
+python main.py --local-videos downloads/video1.mp4 --story-file stories/中年往事/chapter-001.txt
+```
+
+### 方式6: B站分类自动下载
 
 ```bash
 python scripts/auto_download.py
 ```
 
-### 方式6: 通用视频下载
+### 方式7: 通用视频下载
 
 ```bash
 python scripts/download_videos.py <url1> <url2> ...
@@ -78,8 +86,9 @@ python scripts/download_videos.py <url1> <url2> ...
 
 ## 输出文件
 
-- `output/final_video.mp4`: 最终生成的视频
-- `output/story.txt`: 生成的故事文本
+- `stories/<小说名>/chapter-001.txt`: 章节故事文本
+- `output/<小说名>/chapter-001.mp4`: 按章节生成的视频（当提供 `--novel-name` 时）
+- `output/final_video.mp4`: 兼容旧模式的默认输出
 - `temp/`: 临时文件目录
 
 ## 项目结构
@@ -106,14 +115,16 @@ video_story_generator/
 │   │   ├── subtitle_renderer.py     #   字幕渲染（PIL）
 │   │   ├── audio_mixer.py           #   音频混合
 │   │   └── compositor.py            #   最终合成编排
-│   ├── story/                       # 故事生成
-│   │   └── generator.py             #   故事文本生成
+│   ├── story/                       # 故事生成与存储
+│   │   ├── generator.py             #   故事文本生成
+│   │   └── storage.py               #   章节 txt 存储与读取
 │   └── tts/                         # TTS 语音
 │       ├── engine.py                #   edge-tts 引擎
 │       ├── text_splitter.py         #   文本分句
 │       ├── audio_merger.py          #   音频片段合并
 │       └── facade.py                #   TTS 门面（完整流程）
 ├── downloads/                       # 视频素材目录
+├── stories/                         # 小说章节文本目录
 ├── output/                          # 输出目录
 ├── temp/                            # 临时文件目录
 ├── requirements.txt
