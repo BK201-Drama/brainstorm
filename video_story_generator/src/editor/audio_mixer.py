@@ -2,7 +2,7 @@
 音频混合模块
 职责：为视频添加/替换配音音轨
 """
-from moviepy import VideoFileClip, AudioFileClip
+from moviepy import VideoFileClip, AudioFileClip, concatenate_videoclips
 
 from ..config import VIDEO_CONFIG
 
@@ -21,11 +21,18 @@ class AudioMixer:
         except AttributeError:
             return audio.subclip(start, end)
 
+    @staticmethod
+    def _subclip_video(video, start, end):
+        try:
+            return video.subclipped(start, end)
+        except AttributeError:
+            return video.subclip(start, end)
+
     def add_audio(self, video_file, audio_file, output_file):
         """
-        为视频添加配音。
-        - 音频 > 视频：截取音频
-        - 音频 < 视频：循环音频
+        为视频添加配音（保证对齐）。
+        - 音频 > 视频：循环/延长视频到音频时长
+        - 音频 < 视频：循环音频到视频时长
 
         Args:
             video_file: 视频文件路径
@@ -40,14 +47,15 @@ class AudioMixer:
             audio = AudioFileClip(audio_file)
 
             if audio.duration > video.duration:
-                audio = self._subclip_audio(audio, 0, video.duration)
+                loop_count = int(audio.duration / video.duration) + 1
+                video = concatenate_videoclips([video] * loop_count)
+                video = self._subclip_video(video, 0, audio.duration)
             elif audio.duration < video.duration:
                 from moviepy import concatenate_audioclips
                 loop_count = int(video.duration / audio.duration) + 1
-                audio_clips = [audio] * loop_count
-                audio = self._subclip_audio(
-                    concatenate_audioclips(audio_clips), 0, video.duration
-                )
+                audio = self._subclip_audio(concatenate_audioclips([audio] * loop_count), 0, video.duration)
+
+            print(f"[对齐检查] video={video.duration:.3f}s, audio={audio.duration:.3f}s")
 
             final_video = video.with_audio(audio)
             final_video.write_videofile(
