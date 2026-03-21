@@ -9,7 +9,7 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # ── 视频相关 ──────────────────────────────────────────────────
 VIDEO_CONFIG = {
-    "target_duration": 600,           # 目标总时长（秒）：10分钟
+    "target_duration": 30,            # 目标总时长（秒）：30秒（demo）
     "output_resolution": (1920, 1080),
     "fps": 30,
     "video_format": "mp4",
