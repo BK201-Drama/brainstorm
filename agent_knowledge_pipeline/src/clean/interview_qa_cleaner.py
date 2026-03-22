@@ -13,8 +13,17 @@ PATTERNS = [
     r"(?:^|[\.!。！？]\s+)(Can\s[^?]{15,170}\?)",
 ]
 
-KW = ("rag", "retrieval", "langchain", "agent", "agentic", "search", "tool", "llm", "ai", "transformer")
 BAD = ("projectpro", "start free", "related blogs", "cookie", "login", "pricing", "{{", "}}")
+
+# 强过滤：只保留四类
+TOPIC_KEYWORDS = {
+    "rag": ("rag", "retrieval-augmented", "vector search", "embedding", "rerank", "chunk"),
+    "langchain": ("langchain", "lcel", "runnable", "langgraph", "retriever"),
+    "agent": (" ai agent", "agent ", "tool calling", "function calling", "react agent", "planner"),
+    "agentic_search": ("agentic search", "multi-hop", "search loop", "query planning", "evidence retrieval"),
+}
+
+STRICT_CORE = ("rag", "langchain", "agent", "agentic", "llm", "vector search", "embedding", "retrieval-augmented", "tool calling", "transformer", "retrieval")
 
 
 def _norm(text: str) -> str:
@@ -32,11 +41,25 @@ def _extract_questions(text: str) -> list[tuple[str, int]]:
     return found
 
 
+def _has_kw(text: str, kw: str) -> bool:
+    if " " in kw or "-" in kw:
+        return kw in text
+    return re.search(rf"\b{re.escape(kw)}\b", text) is not None
+
+
+def _classify_topic(q_low: str) -> str | None:
+    if not any(_has_kw(q_low, k) for k in STRICT_CORE):
+        return None
+    for t, kws in TOPIC_KEYWORDS.items():
+        if any(_has_kw(q_low, k) for k in kws):
+            return t
+    return None
+
+
 def build_interview_qa(seed_materials: List[Dict], max_per_source: int = 40) -> List[Dict]:
     out: List[Dict] = []
 
     for s in seed_materials:
-        topic = s.get("topic", "general")
         source = s.get("source", "unknown")
         url = s.get("url", "")
         text = _norm(s.get("text", ""))
@@ -52,9 +75,8 @@ def build_interview_qa(seed_materials: List[Dict], max_per_source: int = 40) -> 
             if len(q) < 20 or len(q) > 180:
                 continue
 
-            if topic != "ai_engineer" and not any(k in q_low for k in KW):
-                continue
-            if topic == "ai_engineer" and not any(k in q_low for k in ("agent", "rag", "retrieval", "search", "llm", "transformer", "ai")):
+            topic = _classify_topic(q_low)
+            if not topic:
                 continue
 
             tail = text[pos + len(q): pos + len(q) + 450]
@@ -73,7 +95,7 @@ def build_interview_qa(seed_materials: List[Dict], max_per_source: int = 40) -> 
                     "source": source,
                     "source_url": url,
                     "extracted": True,
-                    "tags": ["interview", "extracted", topic],
+                    "tags": ["interview", "extracted", topic, "strict_filtered"],
                 }
             )
             count += 1
