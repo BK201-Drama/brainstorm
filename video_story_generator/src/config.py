@@ -34,6 +34,13 @@ TTS_CONFIG = {
     "pitch": "+0Hz",
 }
 
+# ── 背景音乐（可写死）────────────────────────────────────────
+AUDIO_CONFIG = {
+    "bgm_file": os.path.join(PROJECT_ROOT, "downloads", "test_bg.mp4"),
+    "bgm_enabled": True,
+    "bgm_volume": 0.12,
+}
+
 # ── 字幕相关 ──────────────────────────────────────────────────
 SUBTITLE_CONFIG = {
     "font_size": 60,

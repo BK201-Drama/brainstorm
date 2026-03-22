@@ -85,6 +85,79 @@ def _get_ffprobe_path(ffmpeg_path=None):
     return "ffprobe"
 
 
+def clip_video(video_path, start_time=0.0, duration=None, ffmpeg_path=None):
+    """
+    使用 ffmpeg 对视频做快速剪辑（解压/放松视频常用）。
+
+    Args:
+        video_path: 输入视频路径
+        start_time: 起始秒数
+        duration: 剪辑时长（秒），None 表示从 start 到结尾
+        ffmpeg_path: ffmpeg 路径
+
+    Returns:
+        剪辑后文件路径（失败返回原路径）
+    """
+    ffmpeg_path = ffmpeg_path or FFMPEG_PATH
+
+    if not os.path.exists(video_path):
+        return video_path
+
+    start_time = max(0.0, float(start_time or 0.0))
+    if duration is not None:
+        duration = float(duration)
+        if duration <= 0:
+            return video_path
+
+    temp_output = video_path + ".clip.mp4"
+
+    cmd = [ffmpeg_path, "-ss", str(start_time), "-i", video_path]
+    if duration is not None:
+        cmd += ["-t", str(duration)]
+    cmd += ["-c:v", "copy", "-c:a", "copy", "-y", temp_output]
+
+    try:
+        result = subprocess.run(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=300,
+        )
+        if result.returncode == 0 and os.path.exists(temp_output):
+            os.replace(temp_output, video_path)
+            return video_path
+
+        # copy 模式在非关键帧起点可能失败，fallback 重编码
+        if os.path.exists(temp_output):
+            os.remove(temp_output)
+
+        cmd_reencode = [ffmpeg_path, "-ss", str(start_time), "-i", video_path]
+        if duration is not None:
+            cmd_reencode += ["-t", str(duration)]
+        cmd_reencode += ["-c:v", "libx264", "-c:a", "aac", "-y", temp_output]
+
+        result = subprocess.run(
+            cmd_reencode,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=600,
+        )
+        if result.returncode == 0 and os.path.exists(temp_output):
+            os.replace(temp_output, video_path)
+            return video_path
+
+        if os.path.exists(temp_output):
+            os.remove(temp_output)
+        logger.warning("视频剪辑失败(ffmpeg返回码=%d): %s", result.returncode, video_path)
+        return video_path
+
+    except Exception as e:
+        if os.path.exists(temp_output):
+            os.remove(temp_output)
+        logger.warning("视频剪辑出错: %s", e)
+        return video_path
+
+
 def get_video_duration(video_path, ffmpeg_path=None):
     """
     获取视频时长（秒）。优先使用 ffprobe（更快），失败则 fallback 到 moviepy。

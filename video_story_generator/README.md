@@ -37,6 +37,12 @@ python scripts/check_deps.py
 python main.py --urls https://www.youtube.com/watch?v=xxx https://www.bilibili.com/video/xxx
 ```
 
+### 方式1.1: 下载后自动剪辑（适合 YouTube/B站解压素材）
+
+```bash
+python main.py --urls https://www.youtube.com/watch?v=xxx --clip-start 30 --clip-duration 20
+```
+
 ### 方式2: 使用本地视频文件
 
 ```bash
@@ -89,10 +95,13 @@ python scripts/download_videos.py <url1> <url2> ...
 - 字幕样式（字体大小、颜色、位置）
 - 目标视频时长
 - 下载并发数、时长限制、自动静音
+- 背景音乐（默认写死为 `downloads/test_bg.mp4`）
 
-CLI 并发参数：
+CLI 参数：
 - `--workers`：章节并发渲染数（默认 2）
 - `--chapters`：章节范围（如 `001-010`）
+- `--clip-start`：素材剪辑起始秒数
+- `--clip-duration`：素材剪辑时长（秒）
 
 ## 输出文件
 

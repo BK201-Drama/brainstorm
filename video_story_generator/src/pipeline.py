@@ -95,6 +95,8 @@ def main():
     parser.add_argument('--chapters', type=str, help='批量章节，如 001-010（与 --novel-name 搭配）')
     parser.add_argument('--workers', type=int, default=2, help='批量章节并发数（默认2）')
     parser.add_argument('--output', type=str, default='output/final_video.mp4', help='输出视频文件路径')
+    parser.add_argument('--clip-start', type=float, default=0.0, help='素材剪辑起始秒数（用于YouTube/B站解压视频）')
+    parser.add_argument('--clip-duration', type=float, default=None, help='素材剪辑时长（秒）')
 
     args = parser.parse_args()
 
@@ -106,7 +108,10 @@ def main():
 
     # ── 步骤1: 获取视频素材 ───────────────────────────────────
     print("\n[步骤1] 获取视频素材...")
-    downloader = VideoDownloader()
+    downloader = VideoDownloader(
+        clip_start=args.clip_start,
+        clip_duration=args.clip_duration,
+    )
 
     video_files = []
     if args.local_videos:

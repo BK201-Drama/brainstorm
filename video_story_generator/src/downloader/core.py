@@ -8,7 +8,7 @@ import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from ..config import DOWNLOAD_CONFIG
-from ..utils.ffmpeg import FFMPEG_PATH, remove_audio_from_video, get_video_duration
+from ..utils.ffmpeg import FFMPEG_PATH, remove_audio_from_video, get_video_duration, clip_video
 from ..utils.file_naming import find_downloaded_file
 
 logger = logging.getLogger(__name__)
@@ -24,7 +24,7 @@ except ImportError:
 class VideoDownloader:
     """视频下载器：负责从网络平台下载视频"""
 
-    def __init__(self, output_dir=None):
+    def __init__(self, output_dir=None, clip_start=0.0, clip_duration=None):
         self.output_dir = output_dir or DOWNLOAD_CONFIG["output_dir"]
         self.max_duration = DOWNLOAD_CONFIG["max_video_duration"]
         self.min_duration = DOWNLOAD_CONFIG["min_video_duration"]
@@ -33,6 +33,8 @@ class VideoDownloader:
         self.remove_audio = DOWNLOAD_CONFIG["remove_audio"]
         self.socket_timeout = DOWNLOAD_CONFIG["socket_timeout"]
         self.retries = DOWNLOAD_CONFIG["retries"]
+        self.clip_start = max(0.0, float(clip_start or 0.0))
+        self.clip_duration = float(clip_duration) if clip_duration is not None else None
         os.makedirs(self.output_dir, exist_ok=True)
 
     # ── yt-dlp 选项 ──────────────────────────────────────────
@@ -99,6 +101,14 @@ class VideoDownloader:
                 downloaded_file = find_downloaded_file(filename, fallback_dir=self.output_dir)
 
                 if downloaded_file:
+                    # 可选剪辑（用于解压素材）
+                    if self.clip_start > 0 or self.clip_duration is not None:
+                        print(
+                            f"  正在剪辑视频: {os.path.basename(downloaded_file)} "
+                            f"(start={self.clip_start}s, duration={self.clip_duration})"
+                        )
+                        clip_video(downloaded_file, start_time=self.clip_start, duration=self.clip_duration)
+
                     # 静音处理
                     if self.remove_audio:
                         print(f"  正在移除音频: {os.path.basename(downloaded_file)}")
@@ -207,8 +217,7 @@ class VideoDownloader:
         return selected_files
 
     # ── 本地文件 ──────────────────────────────────────────────
-    @staticmethod
-    def load_local_videos(file_paths):
+    def load_local_videos(self, file_paths):
         """
         校验并返回本地已有的视频文件路径。
 
@@ -221,6 +230,13 @@ class VideoDownloader:
         valid_files = []
         for file_path in file_paths:
             if os.path.exists(file_path):
+                # 本地素材也支持统一剪辑
+                if self.clip_start > 0 or self.clip_duration is not None:
+                    print(
+                        f"正在剪辑本地视频: {os.path.basename(file_path)} "
+                        f"(start={self.clip_start}s, duration={self.clip_duration})"
+                    )
+                    clip_video(file_path, start_time=self.clip_start, duration=self.clip_duration)
                 valid_files.append(file_path)
             else:
                 print(f"文件不存在: {file_path}")
