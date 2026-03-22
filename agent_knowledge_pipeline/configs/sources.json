@@ -1,0 +1,63 @@
+{
+  "sources": [
+    {
+      "name": "OpenAI Blog",
+      "type": "rss",
+      "url": "https://openai.com/news/rss.xml",
+      "enabled": true,
+      "level": "beginner",
+      "focus": ["应用案例", "产品能力"]
+    },
+    {
+      "name": "Anthropic News",
+      "type": "rss",
+      "url": "https://www.anthropic.com/news/rss.xml",
+      "enabled": true,
+      "level": "beginner",
+      "focus": ["安全实践", "Agent落地"]
+    },
+    {
+      "name": "Hugging Face Blog",
+      "type": "rss",
+      "url": "https://huggingface.co/blog/feed.xml",
+      "enabled": true,
+      "level": "beginner",
+      "focus": ["开源工具", "上手教程"]
+    },
+    {
+      "name": "LangChain Blog",
+      "type": "rss",
+      "url": "https://blog.langchain.dev/rss/",
+      "enabled": true,
+      "level": "beginner",
+      "focus": ["Agent框架", "实战模板"]
+    },
+    {
+      "name": "Google Developers Blog (AI)",
+      "type": "rss",
+      "url": "https://developers.googleblog.com/feeds/posts/default",
+      "enabled": true,
+      "level": "beginner",
+      "focus": ["工程实践", "开发者案例"]
+    }
+  ],
+  "filters": {
+    "exclude_keywords": [
+      "benchmark",
+      "theorem",
+      "proof",
+      "ablation",
+      "quantization"
+    ],
+    "prefer_keywords": [
+      "tutorial",
+      "guide",
+      "quickstart",
+      "example",
+      "agent",
+      "workflow",
+      "tool calling",
+      "RAG"
+    ]
+  }
+}

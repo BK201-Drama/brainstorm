@@ -14,7 +14,7 @@ from src.deliver.feishu_formatter import build_messages, save_messages_jsonl
 
 
 ROOT = Path(__file__).resolve().parents[1]
-CFG = ROOT / "configs" / "sources.example.json"
+CFG = ROOT / "configs" / "sources.json"
 RAW_DIR = ROOT / "data" / "raw"
 CLEAN_DIR = ROOT / "data" / "clean"
 LOCAL_DIR = ROOT / "data" / "local"
@@ -22,6 +22,10 @@ LOCAL_DIR = ROOT / "data" / "local"
 
 def main():
     cfg = json.loads(CFG.read_text(encoding="utf-8"))
+
+    filters = cfg.get("filters", {})
+    exclude_keywords = filters.get("exclude_keywords", [])
+    prefer_keywords = filters.get("prefer_keywords", [])
 
     all_clean = []
     for s in cfg.get("sources", []):
@@ -35,7 +39,11 @@ def main():
         raw_file = RAW_DIR / f"{name.replace(' ', '_').lower()}.json"
         save_raw(items, raw_file)
 
-        cleaned = clean_items(items)
+        cleaned = clean_items(
+            items,
+            exclude_keywords=exclude_keywords,
+            prefer_keywords=prefer_keywords,
+        )
         clean_file = CLEAN_DIR / f"{name.replace(' ', '_').lower()}.json"
         save_clean(cleaned, clean_file)
 
