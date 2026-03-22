@@ -1,4 +1,1 @@
-feedparser==6.0.11
-beautifulsoup4==4.12.3
-requests==2.32.3
-python-dateutil==2.9.0.post0
+# 当前版本使用 Python 标准库抓 RSS，无额外依赖

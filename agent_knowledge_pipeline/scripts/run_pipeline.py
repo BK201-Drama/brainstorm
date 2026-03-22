@@ -35,7 +35,12 @@ def main():
             continue
 
         name = s["name"]
-        items = fetch_rss(s["url"], name)
+        try:
+            items = fetch_rss(s["url"], name)
+        except Exception as e:
+            print(f"skip source={name}, err={e}")
+            continue
+
         raw_file = RAW_DIR / f"{name.replace(' ', '_').lower()}.json"
         save_raw(items, raw_file)
 

@@ -1,22 +1,6 @@
 {
   "sources": [
     {
-      "name": "OpenAI Blog",
-      "type": "rss",
-      "url": "https://openai.com/news/rss.xml",
-      "enabled": true,
-      "level": "beginner",
-      "focus": ["应用案例", "产品能力"]
-    },
-    {
-      "name": "Anthropic News",
-      "type": "rss",
-      "url": "https://www.anthropic.com/news/rss.xml",
-      "enabled": true,
-      "level": "beginner",
-      "focus": ["安全实践", "Agent落地"]
-    },
-    {
       "name": "Hugging Face Blog",
       "type": "rss",
       "url": "https://huggingface.co/blog/feed.xml",
@@ -27,18 +11,34 @@
     {
       "name": "LangChain Blog",
       "type": "rss",
-      "url": "https://blog.langchain.dev/rss/",
+      "url": "https://blog.langchain.com/rss/",
       "enabled": true,
       "level": "beginner",
       "focus": ["Agent框架", "实战模板"]
     },
     {
-      "name": "Google Developers Blog (AI)",
+      "name": "Semantic Kernel Blog",
       "type": "rss",
-      "url": "https://developers.googleblog.com/feeds/posts/default",
+      "url": "https://devblogs.microsoft.com/semantic-kernel/feed/",
       "enabled": true,
       "level": "beginner",
-      "focus": ["工程实践", "开发者案例"]
+      "focus": ["工程实践", "企业应用"]
+    },
+    {
+      "name": "Simon Willison",
+      "type": "rss",
+      "url": "https://simonwillison.net/atom/everything/",
+      "enabled": true,
+      "level": "beginner",
+      "focus": ["LLM实战", "工具流"]
+    },
+    {
+      "name": "InfoQ AI",
+      "type": "rss",
+      "url": "https://www.infoq.com/ai-ml-data-eng/feed/",
+      "enabled": true,
+      "level": "beginner",
+      "focus": ["案例复盘", "工程思路"]
     }
   ],
   "filters": {
@@ -47,7 +47,8 @@
       "theorem",
       "proof",
       "ablation",
-      "quantization"
+      "quantization",
+      "curriculum vitae"
     ],
     "prefer_keywords": [
       "tutorial",
@@ -57,7 +58,8 @@
       "agent",
       "workflow",
       "tool calling",
-      "RAG"
+      "RAG",
+      "best practices"
     ]
   }
 }
